@@ -961,17 +961,15 @@ static int fuse_compat_open(struct fuse_fs *fs, const char *path,
 {
 	int err;
 	if (!fs->compat || fs->compat >= 25)
-		err = fs->op.open(path, fi);
+		err = (fs->op.open)(path, fi);
 	else if (fs->compat == 22) {
 		struct fuse_file_info_compat tmp;
 		memcpy(&tmp, fi, sizeof(tmp));
-		err = ((struct fuse_operations_compat22 *) &fs->op)->open(path,
-									  &tmp);
+		err = (((struct fuse_operations_compat22 *) &fs->op)->open)(path, &tmp);
 		memcpy(fi, &tmp, sizeof(tmp));
 		fi->fh = tmp.fh;
 	} else
-		err = ((struct fuse_operations_compat2 *) &fs->op)
-			->open(path, fi->flags);
+		err = (((struct fuse_operations_compat2 *) &fs->op)->open)(path, fi->flags);
 	return err;
 }
 
