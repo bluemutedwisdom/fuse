@@ -95,6 +95,9 @@ static int add_mount(const char *progname, const char *fsname,
 		goto out_restore;
 	}
 	if (res == 0) {
+		char templ[] = "/tmp/fusermountXXXXXX";
+		char *tmp;
+
 		/*
 		 * Hide output, because old versions don't support
 		 * --no-canonicalize
@@ -105,6 +108,24 @@ static int add_mount(const char *progname, const char *fsname,
 
 		sigprocmask(SIG_SETMASK, &oldmask, NULL);
 		setuid(geteuid());
+
+		/*
+		 * hide in a directory, where mount isn't able to resolve
+		 * fsname as a valid path
+		 */
+		tmp = mkdtemp(templ);
+		if (!tmp) {
+			fprintf(stderr,
+				"%s: failed to create temporary directory\n",
+				progname);
+			exit(1);
+		}
+		if (chdir(tmp)) {
+			fprintf(stderr, "%s: failed to chdir to %s: %s\n",
+				progname, tmp, strerror(errno));
+			exit(1);
+		}
+		rmdir(tmp);
 		execl("/bin/mount", "/bin/mount", "--no-canonicalize", "-i",
 		      "-f", "-t", type, "-o", opts, fsname, mnt, NULL);
 		fprintf(stderr, "%s: failed to execute /bin/mount: %s\n",
