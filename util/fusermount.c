@@ -7,6 +7,9 @@
 */
 /* This program does the mounting and unmounting of FUSE filesystems */
 
+/* For CLONE_NEWNS */
+#define _GNU_SOURCE
+
 #include <config.h>
 
 #include "mount_util.h"
